@@ -16,6 +16,23 @@ from telegram.ext import (
     PicklePersistence,
 )
 
+
+
+# --- FLASK APP FOR RENDER HEALTH CHECK ---
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Quiz Bot is running!"
+
+# Function to start Flask in a separate thread
+def start_flask():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
+
+
+
+
 # --- Load environment variables from .env file ---
 load_dotenv()
 
@@ -149,6 +166,10 @@ async def schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
 
 def main() -> None:
+
+    """Start Flask in a thread and the bot using polling."""
+    # Start Flask server in a background thread
+    threading.Thread(target=start_flask, daemon=True).start()
     """Starts the bot, initializes the DB, and reschedules jobs on restart."""
     if not BOT_TOKEN or not ADMIN_USERID:
         logger.critical("!!! ERROR: SCHEDULER_BOT_TOKEN or ADMIN_USERID not found in .env file. !!!")
@@ -202,3 +223,4 @@ def main() -> None:
 if __name__ == "__main__":
 
     main()
+
